@@ -1,0 +1,25 @@
+spring:
+  jpa:
+    show-sql: true
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 20
+        jdbc.batch_size: 20
+        id.new_generator_mappings: false
+  flyway:
+    baseline-on-migrate: true
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/pb_names
+    username: postgres
+    password: postgres
+
+bot:
+  name: PBDailyListRandomizingBot
+  token: 6817769334:AAGlJr3Ogt0t7H0BhkrfVCHznzAdg5lZn6g
+  admins: Gammix, MarinaIvanovaS, anne_yash
+
