@@ -39,6 +39,11 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     @Override
+    public String getBotToken() {
+        return botConfig.getToken();
+    }
+
+    @Override
     @Transactional
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
