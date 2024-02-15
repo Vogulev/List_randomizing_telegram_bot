@@ -84,7 +84,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     List<PbUser> allUsers = namesRepository.findAll();
                     if (allUsers.isEmpty()) {
                         sendMessage(chatId,
-                                "Нет добавленных сотрудников, если вы администратор - воспользуйся командой \"\\add\"\n\n");
+                                "Нет добавленных сотрудников, если вы администратор - воспользуйся командой \"/add\"\n\n");
                     } else {
                         sendMessage(chatId, "Список всех сотрудников:\n\n");
                         String allUsersStr = allUsers.stream()
@@ -149,7 +149,8 @@ public class TelegramBot extends TelegramLongPollingBot {
         String answer = "Привет, " + name + "!\n" +
                 "Это бот для выбора порядка выступления на Daily, созданный инициативным парнем ;-)\n" +
                 "Он присылает список в 9:45 по МСК каждый день за исключением выходных!\n" +
-                "Желаю тебе хорошего и продуктивного рабочего дня! :-*";
+                "Кстати, вы уже автоматически подписаны на утреннюю рассылку!\n" +
+                "Желаю хорошего и продуктивного дня! :-*";
         sendMessage(chatId, answer);
     }
 
