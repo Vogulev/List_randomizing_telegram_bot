@@ -18,6 +18,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -49,58 +50,55 @@ public class TelegramBot extends TelegramLongPollingBot {
         if (update.hasMessage() && update.getMessage().hasText()) {
             String messageText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
+            String firstName = update.getMessage().getChat().getFirstName();
             String answer;
 
             switch (messageText) {
                 case "/start":
-                    startCommandReceived(chatId, update.getMessage().getChat().getFirstName());
+                    answer = startCommandReceived(chatId, firstName);
+                    break;
+                case "/unsubscribe":
+                    clientsRepository.getPbClientsByChatId(chatId)
+                            .ifPresent(client -> client.setActive(false));
+                    answer = firstName + " вы успешно отписались от назойливой рассылки по утрам, хорошего отдыха!";
                     break;
                 case "/add":
                     if (admins.contains(update.getMessage().getFrom().getUserName())) {
                         answer = "Введите имя сотрудника для добавления его в список";
-                        sendMessage(chatId, answer);
                         isSaveUserCmd = true;
                     } else {
                         answer = "Вы не являетесь администратором бота";
-                        sendMessage(chatId, answer);
                     }
                     break;
                 case "/delete":
                     if (admins.contains(update.getMessage().getFrom().getUserName())) {
                         answer = "Введите имя сотрудника для удаления его из списка";
-                        sendMessage(chatId, answer);
                         isDeleteCmd = true;
                     } else {
                         answer = "Вы не являетесь администратором бота";
-                        sendMessage(chatId, answer);
                     }
                     break;
                 case "/shuffle":
                     List<PbUser> users = namesRepository.findAll();
-                    String namesStr = shuffleService.shuffleNames(users);
-                    sendMessage(chatId, namesStr);
+                    answer = shuffleService.shuffleNames(users);
                     break;
                 case "/list":
                     List<PbUser> allUsers = namesRepository.findAll();
                     if (allUsers.isEmpty()) {
-                        sendMessage(chatId,
-                                "Нет добавленных сотрудников, если вы администратор - воспользуйся командой \"/add\"\n\n");
+                        answer = "Нет добавленных сотрудников, если вы администратор - воспользуйся командой \"/add\"\n\n";
                     } else {
-                        sendMessage(chatId, "Список всех сотрудников:\n\n");
                         String allUsersStr = allUsers.stream()
                                 .map(PbUser::getName)
                                 .map(Object::toString)
                                 .collect(Collectors.joining("\n"));
-                        sendMessage(chatId, allUsersStr);
+                        answer = "Список всех сотрудников:\n\n" + allUsersStr;
                     }
                     break;
                 case "/holidays":
-                    sendMessage(chatId,
-                            "Раздел \"Праздники\" находится в процессе разработки: дайте разработчику немного больше времени :-)");
+                    answer = "Раздел \"Праздники\" находится в процессе разработки: дайте разработчику немного больше времени :-)";
                     break;
                 case "/birthdays":
-                    sendMessage(chatId,
-                            "Раздел \"Дни рождения\" находится в процессе разработки: дайте разработчику немного больше времени :-)");
+                    answer = "Раздел \"Дни рождения\" находится в процессе разработки: дайте разработчику немного больше времени :-)";
                     break;
                 default:
                     if (isSaveUserCmd && update.hasMessage() && update.getMessage().hasText()) {
@@ -109,10 +107,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                             pbUser.setName(messageText);
                             namesRepository.save(pbUser);
                             answer = "Вы добавили сотрудника " + messageText;
-                            sendMessage(chatId, answer);
                         } catch (DataIntegrityViolationException ex) {
                             log.error(ex.getMessage());
-                            sendMessage(chatId, "Ошибка сохранения сотрудника: возможно такое имя уже присутствует в списке");
+                            answer = "Ошибка сохранения сотрудника: возможно такое имя уже присутствует в списке";
                         } finally {
                             isSaveUserCmd = false;
                         }
@@ -123,13 +120,12 @@ public class TelegramBot extends TelegramLongPollingBot {
                         } else {
                             answer = "Сотрудник с именем " + messageText + " не найден!";
                         }
-                        sendMessage(chatId, answer);
                         isDeleteCmd = false;
                     } else {
                         answer = "Не знаю такой команды, попробуйте еще раз";
-                        sendMessage(chatId, answer);
                     }
             }
+            sendMessage(chatId, answer);
         }
 
     }
@@ -138,20 +134,27 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void scheduledShuffle() {
         List<PbUser> users = namesRepository.findAll();
         String namesStr = shuffleService.shuffleNames(users);
-        clientsRepository.findAll().forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr));
+        clientsRepository.findAllByActiveTrue().forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr));
     }
 
-    private void startCommandReceived(Long chatId, String name) {
-        PbClient pbClient = new PbClient();
-        pbClient.setName(name);
-        pbClient.setChatId(chatId);
-        clientsRepository.save(pbClient);
-        String answer = "Привет, " + name + "!\n" +
+    private String startCommandReceived(Long chatId, String name) {
+        Optional<PbClient> pbClientOpt = clientsRepository.getPbClientsByChatId(chatId);
+        if (pbClientOpt.isEmpty()) {
+            savePbClient(chatId, name);
+        }
+        return "Привет, " + name + "!\n" +
                 "Это бот для выбора порядка выступления на Daily, созданный инициативным парнем ;-)\n" +
                 "Он присылает список в 9:45 по МСК каждый день за исключением выходных!\n" +
                 "Кстати, вы уже автоматически подписаны на утреннюю рассылку!\n" +
                 "Желаю хорошего и продуктивного дня! :-*";
-        sendMessage(chatId, answer);
+    }
+
+    private void savePbClient(Long chatId, String name) {
+        PbClient pbClient = new PbClient();
+        pbClient.setName(name);
+        pbClient.setChatId(chatId);
+        pbClient.setActive(true);
+        clientsRepository.save(pbClient);
     }
 
     private void sendMessage(Long chatId, String textToSend) {
