@@ -50,9 +50,9 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Transactional
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
-            String messageText = update.getMessage().getText();
+            var messageText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
-            String firstName = update.getMessage().getChat().getFirstName();
+            var firstName = update.getMessage().getChat().getFirstName();
             String answer;
 
             switch (messageText) {
@@ -81,15 +81,15 @@ public class TelegramBot extends TelegramLongPollingBot {
                     }
                     break;
                 case "/shuffle":
-                    List<PbUser> users = namesRepository.findAll();
+                    var users = namesRepository.findAll();
                     answer = shuffleService.shuffleNames(users);
                     break;
                 case "/list":
-                    List<PbUser> allUsers = namesRepository.findAll();
+                    var allUsers = namesRepository.findAll();
                     if (allUsers.isEmpty()) {
                         answer = "Нет добавленных сотрудников, если вы администратор - воспользуйся командой \"/add\"\n\n";
                     } else {
-                        String allUsersStr = allUsers.stream()
+                        var allUsersStr = allUsers.stream()
                                 .map(PbUser::getName)
                                 .map(Object::toString)
                                 .collect(Collectors.joining("\n"));
@@ -105,7 +105,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 default:
                     if (isSaveUserCmd && update.hasMessage() && update.getMessage().hasText()) {
                         try {
-                            PbUser pbUser = new PbUser();
+                            var pbUser = new PbUser();
                             pbUser.setName(messageText);
                             namesRepository.save(pbUser);
                             answer = "Вы добавили сотрудника " + messageText;
@@ -116,7 +116,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                             isSaveUserCmd = false;
                         }
                     } else if (isDeleteCmd && update.hasMessage() && update.getMessage().hasText()) {
-                        Integer isDeleted = namesRepository.deletePbUserByName(messageText);
+                        var isDeleted = namesRepository.deletePbUserByName(messageText);
                         if (isDeleted == 1) {
                             answer = "Вы успешно удалили сотрудника " + messageText;
                         } else {
@@ -134,14 +134,14 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Scheduled(cron = "* 45 9 * * 1-5")
     protected void scheduledShuffle() {
-        List<PbUser> users = namesRepository.findAll();
-        String namesStr = shuffleService.shuffleNames(users);
+        var users = namesRepository.findAll();
+        var namesStr = shuffleService.shuffleNames(users);
         clientsRepository.findAllByActiveTrue().forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr));
         sendMessage(pbGroupId, namesStr);
     }
 
     private String startCommandReceived(Long chatId, String name) {
-        Optional<PbClient> pbClientOpt = clientsRepository.getPbClientsByChatId(chatId);
+        var pbClientOpt = clientsRepository.getPbClientsByChatId(chatId);
         if (pbClientOpt.isEmpty()) {
             savePbClient(chatId, name);
         }
@@ -153,7 +153,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private void savePbClient(Long chatId, String name) {
-        PbClient pbClient = new PbClient();
+        var pbClient = new PbClient();
         pbClient.setName(name);
         pbClient.setChatId(chatId);
         pbClient.setActive(true);
@@ -161,7 +161,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private void sendMessage(Long chatId, String textToSend) {
-        SendMessage sendMessage = new SendMessage();
+        var sendMessage = new SendMessage();
         sendMessage.setChatId(String.valueOf(chatId));
         sendMessage.setText(textToSend);
         try {

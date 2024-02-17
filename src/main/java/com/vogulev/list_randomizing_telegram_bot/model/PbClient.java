@@ -16,5 +16,5 @@ public class PbClient {
     @Column(name = "chat_id")
     private Long chatId;
 
-    private boolean active;
+    private Boolean active;
 }
