@@ -132,8 +132,8 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     }
 
-    @Scheduled(cron = "45 9 * * 1-5")
-    private void scheduledShuffle() {
+    @Scheduled(cron = "* 45 9 * * 1-5")
+    protected void scheduledShuffle() {
         List<PbUser> users = namesRepository.findAll();
         String namesStr = shuffleService.shuffleNames(users);
         clientsRepository.findAllByActiveTrue().forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr));
