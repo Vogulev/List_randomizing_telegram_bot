@@ -23,3 +23,5 @@ bot:
   token: 6817769334:AAGlJr3Ogt0t7H0BhkrfVCHznzAdg5lZn6g
   admins: Gammix,MarinaIvanovaS,anne_yash
 
+pbTelegramBot:
+  groupId: 1526681742

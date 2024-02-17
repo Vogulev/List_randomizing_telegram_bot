@@ -33,6 +33,8 @@ public class TelegramBot extends TelegramLongPollingBot {
     private boolean isDeleteCmd = false;
     @Value("#{'${bot.admins}'.split(',')}")
     private List<String> admins;
+    @Value("${pbTelegramBot.groupId}")
+    private Long pbGroupId;
 
     @Override
     public String getBotUsername() {
@@ -135,6 +137,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         List<PbUser> users = namesRepository.findAll();
         String namesStr = shuffleService.shuffleNames(users);
         clientsRepository.findAllByActiveTrue().forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr));
+        sendMessage(pbGroupId, namesStr);
     }
 
     private String startCommandReceived(Long chatId, String name) {
