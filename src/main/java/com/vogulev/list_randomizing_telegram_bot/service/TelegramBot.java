@@ -97,7 +97,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     }
                     break;
                 case "/holidays":
-                    answer = "Раздел \"Праздники\" находится в процессе разработки: дайте разработчику немного больше времени :-)";
+                    answer = "Какой сегодня праздник можно узнать в группе t.me/p_r_a_z_d_n_i_k";
                     break;
                 case "/birthdays":
                     answer = "Раздел \"Дни рождения\" находится в процессе разработки: дайте разработчику немного больше времени :-)";
