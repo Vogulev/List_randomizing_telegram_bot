@@ -1,0 +1,1 @@
+UPDATE pb_client SET active = true WHERE active is null;

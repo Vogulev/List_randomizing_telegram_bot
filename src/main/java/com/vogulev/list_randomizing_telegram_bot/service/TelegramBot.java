@@ -1,8 +1,8 @@
 package com.vogulev.list_randomizing_telegram_bot.service;
 
 import com.vogulev.list_randomizing_telegram_bot.config.BotConfig;
-import com.vogulev.list_randomizing_telegram_bot.model.PbClient;
-import com.vogulev.list_randomizing_telegram_bot.model.PbUser;
+import com.vogulev.list_randomizing_telegram_bot.entity.PbClient;
+import com.vogulev.list_randomizing_telegram_bot.entity.PbUser;
 import com.vogulev.list_randomizing_telegram_bot.repository.ClientsRepository;
 import com.vogulev.list_randomizing_telegram_bot.repository.NamesRepository;
 import jakarta.transaction.Transactional;
@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.annotation.Schedules;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -18,7 +19,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -132,19 +132,30 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     }
 
-    @Scheduled(cron = "* 45 9 * * 1-5")
+    @Schedules({
+            @Scheduled(cron = "0 45 10 * * 3"),
+            @Scheduled(cron = "0 45 9 * * 1,2,4,5")
+    })
     protected void scheduledShuffle() {
         var users = namesRepository.findAll();
         var namesStr = shuffleService.shuffleNames(users);
-        clientsRepository.findAllByActiveTrue().forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr));
+        List<PbClient> activePbClients = clientsRepository.findAllByActiveTrue();
+        activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr));
         sendMessage(pbGroupId, namesStr);
     }
 
     private String startCommandReceived(Long chatId, String name) {
         var pbClientOpt = clientsRepository.getPbClientsByChatId(chatId);
-        if (pbClientOpt.isEmpty()) {
-            savePbClient(chatId, name);
+        if (pbClientOpt.isPresent()) {
+            PbClient pbClient = pbClientOpt.get();
+            if (pbClient.getActive()) {
+                return "Вы и так уже подписаны на ежедневную рассылку в ЛС";
+            } else {
+                pbClient.setActive(true);
+                return "Вы снова подписались на ежедневную рассылку в ЛС";
+            }
         }
+        savePbClient(chatId, name);
         return "Привет, " + name + "!\n" +
                 "Это бот для выбора порядка выступления на Daily, созданный инициативным парнем ;-)\n" +
                 "Он присылает список в 9:45 по МСК каждый день за исключением выходных!\n" +
