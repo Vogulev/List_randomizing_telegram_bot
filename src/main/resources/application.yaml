@@ -25,3 +25,6 @@ bot:
 
 pbTelegramBot:
   groupId: 1526681742
+
+holidays:
+  url: https://date.nager.at/api/v3/

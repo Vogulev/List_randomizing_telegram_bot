@@ -1,4 +1,4 @@
-package com.vogulev.list_randomizing_telegram_bot.model;
+package com.vogulev.list_randomizing_telegram_bot.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

@@ -29,6 +29,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final ShuffleService shuffleService;
     private final NamesRepository namesRepository;
     private final ClientsRepository clientsRepository;
+    private final HolidaysService holidaysService;
     private boolean isSaveUserCmd = false;
     private boolean isDeleteCmd = false;
     @Value("#{'${bot.admins}'.split(',')}")
@@ -137,11 +138,13 @@ public class TelegramBot extends TelegramLongPollingBot {
             @Scheduled(cron = "0 45 9 * * 1,2,4,5")
     })
     protected void scheduledShuffle() {
-        var users = namesRepository.findAll();
-        var namesStr = shuffleService.shuffleNames(users);
-        List<PbClient> activePbClients = clientsRepository.findAllByActiveTrue();
-        activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr));
-        sendMessage(pbGroupId, namesStr);
+        if (holidaysService.todayIsNotPublicHoliday()) {
+            var users = namesRepository.findAll();
+            var namesStr = shuffleService.shuffleNames(users);
+            List<PbClient> activePbClients = clientsRepository.findAllByActiveTrue();
+            activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr));
+            sendMessage(pbGroupId, namesStr);
+        }
     }
 
     private String startCommandReceived(Long chatId, String name) {

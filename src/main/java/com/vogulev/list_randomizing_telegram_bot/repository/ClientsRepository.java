@@ -1,6 +1,6 @@
 package com.vogulev.list_randomizing_telegram_bot.repository;
 
-import com.vogulev.list_randomizing_telegram_bot.model.PbClient;
+import com.vogulev.list_randomizing_telegram_bot.entity.PbClient;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

@@ -1,6 +1,6 @@
 package com.vogulev.list_randomizing_telegram_bot.service;
 
-import com.vogulev.list_randomizing_telegram_bot.model.PbUser;
+import com.vogulev.list_randomizing_telegram_bot.entity.PbUser;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
