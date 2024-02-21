@@ -49,7 +49,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Transactional
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
-            var messageText = update.getMessage().getText();
+            var messageText = formatMessage(update.getMessage().getText());
             long chatId = update.getMessage().getChatId();
             var firstName = update.getMessage().getChat().getFirstName();
             String answer;
@@ -180,5 +180,13 @@ public class TelegramBot extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             log.error(e.getMessage());
         }
+    }
+
+    private String formatMessage(String message) {
+        if (message.startsWith("/") && message.contains("@")) {
+            int subStringIndex = message.indexOf("@");
+            return message.substring(0, subStringIndex);
+        }
+        return message;
     }
 }
