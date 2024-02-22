@@ -19,6 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -30,6 +31,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final NamesRepository namesRepository;
     private final ClientsRepository clientsRepository;
     private final HolidaysService holidaysService;
+    private final KeyboardService keyboardService;
     private boolean isSaveUserCmd = false;
     private boolean isDeleteCmd = false;
     @Value("#{'${bot.admins}'.split(',')}")
@@ -53,12 +55,13 @@ public class TelegramBot extends TelegramLongPollingBot {
             long chatId = update.getMessage().getChatId();
             var firstName = update.getMessage().getChat().getFirstName();
             String answer;
-
-            switch (messageText) {
+            switch (messageText.toLowerCase(Locale.ROOT)) {
                 case "/start":
+                case "старт":
                     answer = startCommandReceived(chatId, firstName);
                     break;
                 case "/unsubscribe":
+                case "отписаться":
                     clientsRepository.getPbClientsByChatId(chatId)
                             .ifPresent(client -> {
                                 client.setActive(false);
@@ -68,6 +71,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                             "теперь сообщение можно увидеть только в группе PB!";
                     break;
                 case "/add":
+                case "добавить":
                     if (admins.contains(update.getMessage().getFrom().getUserName())) {
                         answer = "Введите имя сотрудника для добавления его в список";
                         isSaveUserCmd = true;
@@ -76,6 +80,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     }
                     break;
                 case "/delete":
+                case "удалить":
                     if (admins.contains(update.getMessage().getFrom().getUserName())) {
                         answer = "Введите имя сотрудника для удаления его из списка";
                         isDeleteCmd = true;
@@ -84,10 +89,12 @@ public class TelegramBot extends TelegramLongPollingBot {
                     }
                     break;
                 case "/shuffle":
+                case "перемешать":
                     var users = namesRepository.findAll();
                     answer = shuffleService.shuffleNames(users);
                     break;
                 case "/list":
+                case "список":
                     var allUsers = namesRepository.findAll();
                     if (allUsers.isEmpty()) {
                         answer = "Нет добавленных сотрудников, если вы администратор - воспользуйся командой \"/add\"\n\n";
@@ -100,9 +107,11 @@ public class TelegramBot extends TelegramLongPollingBot {
                     }
                     break;
                 case "/holidays":
-                    answer = "Какой сегодня праздник можно узнать в группе t.me/p_r_a_z_d_n_i_k";
+                case "праздники":
+                    answer = "t.me/p_r_a_z_d_n_i_k";
                     break;
                 case "/birthdays":
+                case "др":
                     answer = "Раздел \"Дни рождения\" находится в процессе разработки: дайте разработчику немного больше времени :-)";
                     break;
                 default:
@@ -127,17 +136,16 @@ public class TelegramBot extends TelegramLongPollingBot {
                         }
                         isDeleteCmd = false;
                     } else {
-                        answer = "Не знаю такой команды, попробуйте еще раз";
+                        answer = "Не знаю такой команды, попробуйте выбрать нужное действие";
                     }
             }
             sendMessage(chatId, answer);
         }
-
     }
 
     @Schedules({
             @Scheduled(cron = "0 45 10 * * 3", zone = "Europe/Moscow"),
-            @Scheduled(cron = "0 33 12 * * 1,2,4,5", zone = "Europe/Moscow")
+            @Scheduled(cron = "0 45 9 * * 1,2,4,5", zone = "Europe/Moscow")
     })
     protected void scheduledShuffle() {
         if (holidaysService.todayIsNotPublicHoliday()) {
@@ -178,6 +186,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private void sendMessage(Long chatId, String textToSend) {
         var sendMessage = new SendMessage();
+        sendMessage.setReplyMarkup(keyboardService.getKeyboard());
         sendMessage.setChatId(String.valueOf(chatId));
         sendMessage.setText(textToSend);
         try {
