@@ -143,7 +143,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         if (holidaysService.todayIsNotPublicHoliday()) {
             var users = namesRepository.findAll();
             var namesStr = shuffleService.shuffleNames(users);
-            List<PbClient> activePbClients = clientsRepository.findAllByActiveTrue();
+            var activePbClients = clientsRepository.findAllByActiveTrue();
             activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr));
         }
     }
@@ -151,11 +151,12 @@ public class TelegramBot extends TelegramLongPollingBot {
     private String startCommandReceived(Long chatId, String name) {
         var pbClientOpt = clientsRepository.getPbClientsByChatId(chatId);
         if (pbClientOpt.isPresent()) {
-            PbClient pbClient = pbClientOpt.get();
+            var pbClient = pbClientOpt.get();
             if (pbClient.getActive()) {
                 return "Вы и так уже подписаны на ежедневную рассылку в ЛС";
             } else {
                 pbClient.setActive(true);
+                clientsRepository.save(pbClient);
                 return "Вы снова подписались на ежедневную рассылку в ЛС";
             }
         }
