@@ -63,8 +63,12 @@ public class TelegramBot extends TelegramLongPollingBot {
                     break;
                 case "/unsubscribe":
                     clientsRepository.getPbClientsByChatId(chatId)
-                            .ifPresent(client -> client.setActive(false));
-                    answer = firstName + " вы успешно отписались от назойливой рассылки по утрам, хорошего отдыха!";
+                            .ifPresent(client -> {
+                                client.setActive(false);
+                                clientsRepository.save(client);
+                            });
+                    answer = firstName + " вы успешно отписались от назойливой рассылки по утрам, " +
+                            "теперь сообщение можно увидеть только в группе PB!";
                     break;
                 case "/add":
                     if (admins.contains(update.getMessage().getFrom().getUserName())) {
@@ -141,13 +145,13 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Schedules({
             @Scheduled(cron = "0 45 10 * * 3", zone = "Europe/Moscow"),
-            @Scheduled(cron = "0 45 9 * * 1,2,4,5", zone = "Europe/Moscow")
+            @Scheduled(cron = "0 33 12 * * 1,2,4,5", zone = "Europe/Moscow")
     })
     protected void scheduledShuffle() {
         if (holidaysService.todayIsNotPublicHoliday()) {
             var users = namesRepository.findAll();
             var namesStr = shuffleService.shuffleNames(users);
-            List<PbClient> activePbClients = clientsRepository.findAllByActiveTrue();
+            var activePbClients = clientsRepository.findAllByActiveTrue();
             activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr));
         }
     }
@@ -155,11 +159,12 @@ public class TelegramBot extends TelegramLongPollingBot {
     private String startCommandReceived(Long chatId, String name) {
         var pbClientOpt = clientsRepository.getPbClientsByChatId(chatId);
         if (pbClientOpt.isPresent()) {
-            PbClient pbClient = pbClientOpt.get();
+            var pbClient = pbClientOpt.get();
             if (pbClient.getActive()) {
                 return "Вы и так уже подписаны на ежедневную рассылку в ЛС";
             } else {
                 pbClient.setActive(true);
+                clientsRepository.save(pbClient);
                 return "Вы снова подписались на ежедневную рассылку в ЛС";
             }
         }
