@@ -1,9 +1,9 @@
 package com.vogulev.list_randomizing_telegram_bot.service;
 
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,62 +11,51 @@ import java.util.List;
 @Component
 public class KeyboardService {
 
-    public SendMessage getKeyboard(long chat_id) {
-        SendMessage message = new SendMessage();
-        message.setChatId(chat_id);
-        message.setText("Выберите желаемое действие:");
+    public ReplyKeyboardMarkup getKeyboard() {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+        replyKeyboardMarkup.setResizeKeyboard(true);
 
-        List<InlineKeyboardButton> rowInline1 = new ArrayList<>();
-        InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
-        inlineKeyboardButton1.setText("Старт");
-        inlineKeyboardButton1.setCallbackData("/start");
-        InlineKeyboardButton inlineKeyboardButton2 = new InlineKeyboardButton();
-        inlineKeyboardButton2.setText("Отписаться");
-        inlineKeyboardButton2.setCallbackData("/unsubscribe");
-        rowInline1.add(inlineKeyboardButton1);
-        rowInline1.add(inlineKeyboardButton2);
+        List<KeyboardRow> keyboardRows = new ArrayList<>();
 
-        List<InlineKeyboardButton> rowInline2 = new ArrayList<>();
-        InlineKeyboardButton inlineKeyboardButton3 = new InlineKeyboardButton();
-        inlineKeyboardButton3.setText("Добавить");
-        inlineKeyboardButton3.setCallbackData("/add");
-        InlineKeyboardButton inlineKeyboardButton4 = new InlineKeyboardButton();
-        inlineKeyboardButton4.setText("Удалить");
-        inlineKeyboardButton4.setCallbackData("/delete");
-        rowInline2.add(inlineKeyboardButton3);
-        rowInline2.add(inlineKeyboardButton4);
+        KeyboardRow row1 = new KeyboardRow();
+        KeyboardButton keyboardButton1 = new KeyboardButton();
+        keyboardButton1.setText("Старт");
+        KeyboardButton keyboardButton2 = new KeyboardButton();
+        keyboardButton2.setText("Отписаться");
+        row1.add(keyboardButton1);
+        row1.add(keyboardButton2);
 
-        List<InlineKeyboardButton> rowInline3 = new ArrayList<>();
-        InlineKeyboardButton inlineKeyboardButton5 = new InlineKeyboardButton();
-        inlineKeyboardButton5.setText("Список");
-        inlineKeyboardButton5.setCallbackData("/list");
-        InlineKeyboardButton inlineKeyboardButton6 = new InlineKeyboardButton();
-        inlineKeyboardButton6.setText("Перемешать");
-        inlineKeyboardButton6.setCallbackData("/shuffle");
-        rowInline3.add(inlineKeyboardButton5);
-        rowInline3.add(inlineKeyboardButton6);
+        KeyboardRow row2 = new KeyboardRow();
+        KeyboardButton keyboardButton3 = new KeyboardButton();
+        keyboardButton3.setText("Добавить");
+        KeyboardButton keyboardButton4 = new KeyboardButton();
+        keyboardButton4.setText("Удалить");
+        row2.add(keyboardButton3);
+        row2.add(keyboardButton4);
 
-        List<InlineKeyboardButton> rowInline4 = new ArrayList<>();
-        InlineKeyboardButton inlineKeyboardButton7 = new InlineKeyboardButton();
-        inlineKeyboardButton7.setText("Праздники");
-        inlineKeyboardButton7.setUrl("https://t.me/p_r_a_z_d_n_i_k");
-        inlineKeyboardButton7.setCallbackData("holidaysURL");
-        InlineKeyboardButton inlineKeyboardButton8 = new InlineKeyboardButton();
-        inlineKeyboardButton8.setText("ДР");
-        inlineKeyboardButton8.setCallbackData("/birthdays");
-        rowInline4.add(inlineKeyboardButton7);
-        rowInline4.add(inlineKeyboardButton8);
+        KeyboardRow row3 = new KeyboardRow();
+        KeyboardButton keyboardButton5 = new KeyboardButton();
+        keyboardButton5.setText("Список");
+        KeyboardButton keyboardButton6 = new KeyboardButton();
+        keyboardButton6.setText("Перемешать");
+        row3.add(keyboardButton5);
+        row3.add(keyboardButton6);
 
-        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-        rowsInline.add(rowInline1);
-        rowsInline.add(rowInline2);
-        rowsInline.add(rowInline3);
-        rowsInline.add(rowInline4);
+        KeyboardRow row4 = new KeyboardRow();
+        KeyboardButton keyboardButton7 = new KeyboardButton();
+        keyboardButton7.setText("Праздники");
+        KeyboardButton keyboardButton8 = new KeyboardButton();
+        keyboardButton8.setText("ДР");
+        row4.add(keyboardButton7);
+        row4.add(keyboardButton8);
 
-        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
-        markupInline.setKeyboard(rowsInline);
-        message.setReplyMarkup(markupInline);
+        keyboardRows.add(row1);
+        keyboardRows.add(row2);
+        keyboardRows.add(row3);
+        keyboardRows.add(row4);
 
-        return message;
+        replyKeyboardMarkup.setKeyboard(keyboardRows);
+
+        return replyKeyboardMarkup;
     }
 }
