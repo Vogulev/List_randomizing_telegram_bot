@@ -60,8 +60,12 @@ public class TelegramBot extends TelegramLongPollingBot {
                     break;
                 case "/unsubscribe":
                     clientsRepository.getPbClientsByChatId(chatId)
-                            .ifPresent(client -> client.setActive(false));
-                    answer = firstName + " вы успешно отписались от назойливой рассылки по утрам, хорошего отдыха!";
+                            .ifPresent(client -> {
+                                client.setActive(false);
+                                clientsRepository.save(client);
+                            });
+                    answer = firstName + " вы успешно отписались от назойливой рассылки по утрам, " +
+                            "теперь сообщение можно увидеть только в группе PB!";
                     break;
                 case "/add":
                     if (admins.contains(update.getMessage().getFrom().getUserName())) {
@@ -133,7 +137,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Schedules({
             @Scheduled(cron = "0 45 10 * * 3", zone = "Europe/Moscow"),
-            @Scheduled(cron = "0 45 9 * * 1,2,4,5", zone = "Europe/Moscow")
+            @Scheduled(cron = "0 33 12 * * 1,2,4,5", zone = "Europe/Moscow")
     })
     protected void scheduledShuffle() {
         if (holidaysService.todayIsNotPublicHoliday()) {
