@@ -30,6 +30,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final NamesRepository namesRepository;
     private final ClientsRepository clientsRepository;
     private final HolidaysService holidaysService;
+    private final KeyboardService keyboardService;
     private boolean isSaveUserCmd = false;
     private boolean isDeleteCmd = false;
     @Value("#{'${bot.admins}'.split(',')}")
@@ -48,12 +49,14 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Override
     @Transactional
     public void onUpdateReceived(Update update) {
-        if (update.hasMessage() && update.getMessage().hasText()) {
+        if (update.hasMessage() && update.getMessage().hasText() || update.hasCallbackQuery()) {
             var messageText = formatMessage(update.getMessage().getText());
             long chatId = update.getMessage().getChatId();
             var firstName = update.getMessage().getChat().getFirstName();
             String answer;
-
+            if (update.hasCallbackQuery()) {
+                messageText = update.getCallbackQuery().getData();
+            }
             switch (messageText) {
                 case "/start":
                     answer = startCommandReceived(chatId, firstName);
@@ -123,7 +126,12 @@ public class TelegramBot extends TelegramLongPollingBot {
                         }
                         isDeleteCmd = false;
                     } else {
-                        answer = "Не знаю такой команды, попробуйте еще раз";
+                        answer = "Не знаю такой команды, попробуйте выбрать нужное действие";
+                        try {
+                            execute(keyboardService.getKeyboard(chatId));
+                        } catch (TelegramApiException e) {
+                            log.error(e.getMessage());
+                        }
                     }
             }
             sendMessage(chatId, answer);
