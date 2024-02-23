@@ -14,7 +14,7 @@ spring:
     baseline-on-migrate: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/pb_names
+    url: jdbc:postgresql://bot-db:5432/pb_names
     username: postgres
     password: postgres
 
