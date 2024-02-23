@@ -17,9 +17,9 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -54,93 +54,100 @@ public class TelegramBot extends TelegramLongPollingBot {
             var messageText = formatMessage(update.getMessage().getText());
             long chatId = update.getMessage().getChatId();
             var firstName = update.getMessage().getChat().getFirstName();
-            String answer;
-            switch (messageText.toLowerCase(Locale.ROOT)) {
-                case "/start":
-                case "старт":
-                    answer = startCommandReceived(chatId, firstName);
-                    break;
-                case "/unsubscribe":
-                case "отписаться":
-                    clientsRepository.getPbClientsByChatId(chatId)
-                            .ifPresent(client -> {
-                                client.setActive(false);
-                                clientsRepository.save(client);
-                            });
-                    answer = firstName + " вы успешно отписались от назойливой рассылки по утрам, " +
-                            "теперь сообщение можно увидеть только в группе PB!";
-                    break;
-                case "/add":
-                case "добавить":
-                    if (admins.contains(update.getMessage().getFrom().getUserName())) {
-                        answer = "Введите имя сотрудника для добавления его в список";
-                        isSaveUserCmd = true;
-                    } else {
-                        answer = "Вы не являетесь администратором бота";
-                    }
-                    break;
-                case "/delete":
-                case "удалить":
-                    if (admins.contains(update.getMessage().getFrom().getUserName())) {
-                        answer = "Введите имя сотрудника для удаления его из списка";
-                        isDeleteCmd = true;
-                    } else {
-                        answer = "Вы не являетесь администратором бота";
-                    }
-                    break;
-                case "/shuffle":
-                case "перемешать":
-                    var users = namesRepository.findAll();
-                    answer = shuffleService.shuffleNames(users);
-                    break;
-                case "/list":
-                case "список":
-                    var allUsers = namesRepository.findAll();
-                    if (allUsers.isEmpty()) {
-                        answer = "Нет добавленных сотрудников, если вы администратор - воспользуйся командой \"/add\"\n\n";
-                    } else {
-                        var allUsersStr = allUsers.stream()
-                                .map(PbUser::getName)
-                                .map(Object::toString)
-                                .collect(Collectors.joining("\n"));
-                        answer = "Список всех сотрудников:\n\n" + allUsersStr;
-                    }
-                    break;
-                case "/holidays":
-                case "праздники":
-                    answer = "t.me/p_r_a_z_d_n_i_k";
-                    break;
-                case "/birthdays":
-                case "др":
-                    answer = "Раздел \"Дни рождения\" находится в процессе разработки: дайте разработчику немного больше времени :-)";
-                    break;
-                default:
-                    if (isSaveUserCmd && update.hasMessage() && update.getMessage().hasText()) {
-                        try {
-                            var pbUser = new PbUser();
-                            pbUser.setName(messageText);
-                            namesRepository.save(pbUser);
-                            answer = "Вы добавили сотрудника " + messageText;
-                        } catch (DataIntegrityViolationException ex) {
-                            log.error(ex.getMessage());
-                            answer = "Ошибка сохранения сотрудника: возможно такое имя уже присутствует в списке";
-                        } finally {
-                            isSaveUserCmd = false;
-                        }
-                    } else if (isDeleteCmd && update.hasMessage() && update.getMessage().hasText()) {
-                        var isDeleted = namesRepository.deletePbUserByName(messageText);
-                        if (isDeleted == 1) {
-                            answer = "Вы успешно удалили сотрудника " + messageText;
-                        } else {
-                            answer = "Сотрудник с именем " + messageText + " не найден!";
-                        }
-                        isDeleteCmd = false;
-                    } else {
-                        answer = "Не знаю такой команды, попробуйте выбрать нужное действие";
-                    }
-            }
+
+            String answer = switch (messageText) {
+                case "/start", "Старт/подписаться на ЛС \uD83D\uDE80" -> startCmdReceived(chatId, firstName);
+                case "/unsubscribe", "Отписаться от ЛС \uD83D\uDD15" -> unsubscribeCmdReceived(chatId, firstName);
+                case "/add", "Добавить коллегу ✅" -> addCmdReceived(update);
+                case "/delete", "Удалить коллегу ❌" -> delCmdReceived(update);
+                case "/shuffle", "Перемешать \uD83D\uDD00" -> shuffleCmdReceived();
+                case "/list", "Список \uD83D\uDCDC" -> listCmdReceived();
+                case "/holidays", "Праздники \uD83C\uDF89" -> "t.me/p_r_a_z_d_n_i_k";
+                case "/birthdays", "ДР \uD83C\uDF81" -> "Раздел \"Дни рождения\"" +
+                        " находится в процессе разработки: дайте разработчику немного больше времени :-)";
+                default -> unknownCmdReceived(update, messageText);
+            };
             sendMessage(chatId, answer);
         }
+    }
+
+    private String unknownCmdReceived(Update update, String messageText) {
+        String answer;
+        if (isSaveUserCmd && update.hasMessage() && update.getMessage().hasText()) {
+            try {
+                var pbUser = new PbUser();
+                pbUser.setName(messageText);
+                namesRepository.save(pbUser);
+                answer = "Вы добавили сотрудника " + messageText;
+            } catch (DataIntegrityViolationException ex) {
+                log.error(ex.getMessage());
+                answer = "Ошибка сохранения сотрудника: возможно такое имя уже присутствует в списке";
+            } finally {
+                isSaveUserCmd = false;
+            }
+        } else if (isDeleteCmd && update.hasMessage() && update.getMessage().hasText()) {
+            var isDeleted = namesRepository.deletePbUserByName(messageText);
+            if (isDeleted == 1) {
+                answer = "Вы успешно удалили сотрудника " + messageText;
+            } else {
+                answer = "Сотрудник с именем " + messageText + " не найден!";
+            }
+            isDeleteCmd = false;
+        } else {
+            answer = "Не знаю такой команды, попробуйте выбрать нужное действие";
+        }
+        return answer;
+    }
+
+    private String listCmdReceived() {
+        var allUsers = namesRepository.findAll();
+        if (allUsers.isEmpty()) {
+            return "Нет добавленных сотрудников, если вы администратор - воспользуйся командой \"/add\"\n\n";
+        }
+        var allUsersStr = allUsers.stream()
+                .map(PbUser::getName)
+                .map(Object::toString)
+                .collect(Collectors.joining("\n"));
+        return "Список всех сотрудников:\n\n" + allUsersStr;
+    }
+
+    private String shuffleCmdReceived() {
+        var users = namesRepository.findAll();
+        return shuffleService.shuffleNames(users);
+    }
+
+    private String delCmdReceived(Update update) {
+        if (admins.contains(update.getMessage().getFrom().getUserName())) {
+            isDeleteCmd = true;
+            return "Введите имя сотрудника для удаления его из списка";
+        }
+        return "Вы не являетесь администратором бота";
+    }
+
+    private String addCmdReceived(Update update) {
+        if (admins.contains(update.getMessage().getFrom().getUserName())) {
+            isSaveUserCmd = true;
+            return "Введите имя сотрудника для добавления его в список";
+        }
+        return "Вы не являетесь администратором бота";
+    }
+
+    private String unsubscribeCmdReceived(long chatId, String firstName) {
+        PbClient pbClient;
+        try {
+            pbClient = clientsRepository.getPbClientsByChatId(chatId)
+                    .orElseThrow(() -> new TelegramApiRequestException("Не удалось получить пользователя"));
+        } catch (TelegramApiRequestException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (pbClient.getActive()) {
+            pbClient.setActive(false);
+            clientsRepository.save(pbClient);
+            return firstName + " вы успешно отписались от назойливой рассылки по утрам, " +
+                    "теперь сообщение можно увидеть только в группе PB!";
+        }
+        return firstName + " вы и так уже отписаны от получения сообщений в ЛС!";
     }
 
     @Schedules({
@@ -156,7 +163,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    private String startCommandReceived(Long chatId, String name) {
+    private String startCmdReceived(Long chatId, String name) {
         var pbClientOpt = clientsRepository.getPbClientsByChatId(chatId);
         if (pbClientOpt.isPresent()) {
             var pbClient = pbClientOpt.get();
