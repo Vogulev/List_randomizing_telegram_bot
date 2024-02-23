@@ -9,6 +9,7 @@ services:
       - "${APP_PORT}:${APP_PORT}"
     build:
       context: .
+      target: prod
     environment:
       DB_USERNAME: ${DB_USERNAME:?dbUserNameNorProvided}
       DB_PASSWORD: ${DB_PASSWORD:?dbPasswordNotProvided}
@@ -27,3 +28,5 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
     restart: unless-stopped
+    volumes:
+      - ./.pb-bot-db:/var/lib/postgresql/data
