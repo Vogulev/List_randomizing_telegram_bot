@@ -59,7 +59,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                         " находится в процессе разработки: дайте разработчику немного больше времени :-)";
                 default -> commandService.unknownCmdReceived(update, messageText);
             };
-            sendMessage(chatId, answer);
+            sendMessage(chatId, answer, true);
         }
     }
 
@@ -72,15 +72,17 @@ public class TelegramBot extends TelegramLongPollingBot {
             var users = namesRepository.findAll();
             var namesStr = shuffleService.shuffle(users);
             var activePbClients = clientService.getAllActive();
-            activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr));
+            activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr, false));
         }
     }
 
-    private void sendMessage(Long chatId, String textToSend) {
+    private void sendMessage(Long chatId, String text, boolean withReplyMarkup) {
         var sendMessage = new SendMessage();
-        sendMessage.setReplyMarkup(keyboardService.getKeyboard());
         sendMessage.setChatId(String.valueOf(chatId));
-        sendMessage.setText(textToSend);
+        sendMessage.setText(text);
+        if (withReplyMarkup) {
+            sendMessage.setReplyMarkup(keyboardService.getKeyboard());
+        }
         try {
             execute(sendMessage);
         } catch (TelegramApiException e) {
