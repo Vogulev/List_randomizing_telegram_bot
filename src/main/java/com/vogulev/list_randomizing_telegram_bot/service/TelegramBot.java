@@ -13,6 +13,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.time.LocalDate;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -20,7 +22,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final BotConfig botConfig;
     private final CommandService commandService;
     private final KeyboardService keyboardService;
-    private final HolidaysService holidaysService;
+    private final WorkingDaysInfoService workingDaysInfoService;
     private final ClientService clientService;
     private final ShuffleService shuffleService;
     private final NamesRepository namesRepository;
@@ -64,11 +66,11 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     @Schedules({
-            @Scheduled(cron = "0 45 10 * * 3", zone = "Europe/Moscow"),
-            @Scheduled(cron = "0 45 9 * * 1,2,4,5", zone = "Europe/Moscow")
+            @Scheduled(cron = "${scheduledShuffles.wednesday}", zone = "Europe/Moscow"),
+            @Scheduled(cron = "${scheduledShuffles.weekend}", zone = "Europe/Moscow")
     })
     protected void scheduledShuffle() {
-        if (holidaysService.todayIsNotPublicHoliday()) {
+        if (workingDaysInfoService.isWorkingDate(LocalDate.now())) {
             var users = namesRepository.findAll();
             var namesStr = shuffleService.shuffle(users);
             var activePbClients = clientService.getAllActive();

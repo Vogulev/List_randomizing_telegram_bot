@@ -24,4 +24,8 @@ bot:
   admins: Gammix,MarinaIvanovaS,anne_yash
 
 holidays:
-  url: https://date.nager.at/api/v3/
+  url: https://isdayoff.ru/
+
+scheduledShuffles:
+  weekend: '0 45 9 * * 1,2,4,5'
+  wednesday: '0 45 10 * * 3'
