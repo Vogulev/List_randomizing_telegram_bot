@@ -19,22 +19,22 @@ import java.time.LocalDate;
 @Component
 @RequiredArgsConstructor
 public class TelegramBot extends TelegramLongPollingBot {
-    private final BotConfig botConfig;
     private final CommandService commandService;
     private final KeyboardService keyboardService;
     private final WorkingDaysInfoService workingDaysInfoService;
     private final ClientService clientService;
     private final ShuffleService shuffleService;
     private final NamesRepository namesRepository;
+    private final BotConfig botConfig;
 
     @Override
     public String getBotUsername() {
-        return botConfig.getBotName();
+        return botConfig.getBotUserName();
     }
 
     @Override
     public String getBotToken() {
-        return botConfig.getToken();
+        return botConfig.getBotToken();
     }
 
     @Override

@@ -37,3 +37,6 @@ out/
 
 ### Docker Compose Volumes ###
 .pb-bot-db/
+
+### Bot credentials ###
+src/main/resources/botConfig.yml

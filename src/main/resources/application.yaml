@@ -18,11 +18,6 @@ spring:
     username: postgres
     password: postgres
 
-bot:
-  name: PBDailyListRandomizingBot
-  token: 6817769334:AAGlJr3Ogt0t7H0BhkrfVCHznzAdg5lZn6g
-  admins: Gammix,MarinaIvanovaS,anne_yash
-
 holidays:
   url: https://isdayoff.ru/
 
