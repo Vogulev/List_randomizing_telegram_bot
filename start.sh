@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Cancel all local changes on the server
+git reset --hard
+
 # Pull new changes
 git pull
 
