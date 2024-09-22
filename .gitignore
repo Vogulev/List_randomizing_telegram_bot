@@ -39,4 +39,4 @@ out/
 .pb-bot-db/
 
 ### Bot credentials ###
-src/main/resources/botConfig.yml
+/botConfig.yaml
