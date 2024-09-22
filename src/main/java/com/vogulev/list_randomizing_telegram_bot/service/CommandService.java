@@ -1,17 +1,16 @@
 package com.vogulev.list_randomizing_telegram_bot.service;
 
+import com.vogulev.list_randomizing_telegram_bot.config.BotConfig;
 import com.vogulev.list_randomizing_telegram_bot.entity.PbClient;
 import com.vogulev.list_randomizing_telegram_bot.entity.PbUser;
 import com.vogulev.list_randomizing_telegram_bot.repository.NamesRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -21,12 +20,10 @@ public class CommandService {
     private final NamesRepository namesRepository;
     private final ShuffleService shuffleService;
     private final ClientService clientService;
+    private final BotConfig botConfig;
 
     private boolean isSaveUserCmd = false;
     private boolean isDeleteCmd = false;
-
-    @Value("#{'${bot.admins}'.split(',')}")
-    private List<String> admins;
 
     protected String startCmdReceived(Long chatId, String name) {
         var pbClientOpt = clientService.get(chatId);
@@ -65,7 +62,7 @@ public class CommandService {
     }
 
     protected String delCmdReceived(Update update) {
-        if (admins.contains(update.getMessage().getFrom().getUserName())) {
+        if (botConfig.getAdmins().contains(update.getMessage().getFrom().getUserName())) {
             isDeleteCmd = true;
             return "Введите имя сотрудника для удаления его из списка";
         }
@@ -73,7 +70,7 @@ public class CommandService {
     }
 
     protected String addCmdReceived(Update update) {
-        if (admins.contains(update.getMessage().getFrom().getUserName())) {
+        if (botConfig.getAdmins().contains(update.getMessage().getFrom().getUserName())) {
             isSaveUserCmd = true;
             return "Введите имя сотрудника для добавления его в список";
         }
