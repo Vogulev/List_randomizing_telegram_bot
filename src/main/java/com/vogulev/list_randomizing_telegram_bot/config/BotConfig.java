@@ -6,8 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -22,14 +20,9 @@ public class BotConfig {
     private final List<String> admins;
 
     public BotConfig() {
-        try {
-            Map<String, String> config = new Yaml().load(new FileReader("botConfig.yaml"));
-            this.botUserName = config.get("botUserName");
-            this.botToken = config.get("botToken");
-            this.admins = Arrays.stream(config.get("admins").split(",")).toList();
-        } catch (FileNotFoundException e) {
-            log.error(e.getMessage());
-            throw new RuntimeException(e);
-        }
+        Map<String, String> config = new Yaml().load(getClass().getClassLoader().getResourceAsStream("botConfig.yaml"));
+        this.botUserName = config.get("botUserName");
+        this.botToken = config.get("botToken");
+        this.admins = Arrays.stream(config.get("admins").split(",")).toList();
     }
 }
