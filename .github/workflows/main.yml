@@ -28,8 +28,6 @@ jobs:
         with:
           java-version: 21
           distribution: 'adopt'
-      - name: Set up database schema
-        run: db:schema:load
       - name: Maven Package
         run: mvn -B clean package
 
