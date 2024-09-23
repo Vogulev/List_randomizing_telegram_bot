@@ -26,6 +26,9 @@ jobs:
     steps:
       - name: Install Java
         uses: actions/setup-java@v4.3.0
+        with:
+          java-version: 21
+          distribution: 'adopt'
       - name: Set up database schema
         run: bin/postgres db:schema:load
       - name: Run tests
@@ -40,6 +43,9 @@ jobs:
     steps:
       - name: Install Java
         uses: actions/setup-java@v4.3.0
+        with:
+          java-version: 21
+          distribution: 'adopt'
       - name: Run command on remote server
         uses: D3rHase/ssh-command-action@v0.2.2
         with:
