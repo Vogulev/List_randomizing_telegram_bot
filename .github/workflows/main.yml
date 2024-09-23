@@ -24,8 +24,6 @@ jobs:
       RAILS_ENV: test
       DATABASE_URL: "postgres://postgres:postgres@localhost:5432/pb_names"
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
       - name: Install Java
         uses: actions/setup-java@v4.3.0
       - name: Set up database schema
@@ -40,8 +38,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
       - name: Install Java
         uses: actions/setup-java@v4.3.0
       - name: Run command on remote server
