@@ -55,6 +55,16 @@ jobs:
           private_key: ${{secrets.SSH_PRIVATE_KEY}}
           command: |
             cd ${{ secrets.PROJECT_FOLDER }};
-            sh stop.sh
+            docker-compose --env-file ./.env stop
+            gradle clean
             sleep 20
-            sh start.sh master DB_USERNAME=pb_names DB_PASSWORD=postgres DB_NAME=postgres DB_PORT=5555 APP_PORT=8099
+            git reset --hard
+            git pull
+            git checkout master
+            echo "DB_USERNAME=pb_names" >> ./.env
+            echo "DB_PASSWORD=postgres" >> ./.env
+            echo "DB_NAME=postgres" >> ./.env
+            echo "DB_PORT=5555" >> ./.env
+            echo "APP_PORT=8099" >> ./.env
+            docker-compose --env-file ./.env stop
+            docker-compose --env-file ./.env up --build -d
