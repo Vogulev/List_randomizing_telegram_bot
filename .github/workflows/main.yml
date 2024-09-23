@@ -1,0 +1,56 @@
+name: "List_randomazer_CI"
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        ports:
+          - "5432:5432"
+        env:
+          POSTGRES_DB: pb_names
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+    env:
+      POSTGRES_DB: pb_names
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      RAILS_ENV: test
+      DATABASE_URL: "postgres://postgres:postgres@localhost:5432/pb_names"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install Java
+        uses: actions/setup-java@v4.3.0
+      - name: Set up database schema
+        run: bin/postgres db:schema:load
+      - name: Run tests
+        run: |
+          bundle exec rake db:drop db:create db:migrate db:seed;
+          bin/rake test;
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install Java
+        uses: actions/setup-java@v4.3.0
+      - name: Run command on remote server
+        uses: D3rHase/ssh-command-action@v0.2.2
+        with:
+          host: ${{secrets.SSH_HOST}}
+          user: ${{secrets.SSH_USER}}
+          private_key: ${{secrets.SSH_PRIVATE_KEY}}
+          command: |
+            cd ${{ secrets.PROJECT_FOLDER }};
+            sh stop.sh
+            sh start.sh master DB_USERNAME=pb_names DB_PASSWORD=postgres DB_NAME=postgres DB_PORT=5555 APP_PORT=8099
