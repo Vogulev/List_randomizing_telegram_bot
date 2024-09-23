@@ -1,4 +1,4 @@
-***put config file botConfig.yaml with bot name and token to project root dir***
+***put config file botConfig.yaml with bot name and token to project resources folder on remote server***
 
 to start bot execute:
 
