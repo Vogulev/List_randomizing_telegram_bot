@@ -56,5 +56,5 @@ jobs:
           command: |
             cd ${{ secrets.PROJECT_FOLDER }};
             sh stop.sh
-            sleep 10
+            sleep 15
             sh start.sh master DB_USERNAME=pb_names DB_PASSWORD=postgres DB_NAME=postgres DB_PORT=5555 APP_PORT=8099
