@@ -23,19 +23,25 @@ jobs:
       POSTGRES_PASSWORD: postgres
       DATABASE_URL: "postgres://postgres:postgres@localhost:5432/pb_names"
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
       - name: Install Java
         uses: actions/setup-java@v4.3.0
         with:
           java-version: 21
           distribution: 'adopt'
-      - name: Maven Package
-        run: mvn -B clean package
+      - name: Change wrapper permissions
+        run: chmod +x ./gradlew
+      - name: Run tests
+        run: ./gradlew test
 
   deploy:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
       - name: Install Java
         uses: actions/setup-java@v4.3.0
         with:
