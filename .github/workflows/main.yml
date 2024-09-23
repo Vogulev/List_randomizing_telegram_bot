@@ -30,6 +30,8 @@ jobs:
         with:
           java-version: 21
           distribution: 'adopt'
+      - name: Change wrapper permissions
+        run: chmod +x ./gradlew
       - name: Run tests
         run: ./gradlew test
 
