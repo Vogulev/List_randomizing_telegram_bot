@@ -24,7 +24,7 @@ jobs:
       DATABASE_URL: "postgres://postgres:postgres@localhost:5432/pb_names"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Install Java
         uses: actions/setup-java@v4.3.0
         with:
