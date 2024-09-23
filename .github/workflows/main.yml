@@ -23,6 +23,8 @@ jobs:
       POSTGRES_PASSWORD: postgres
       DATABASE_URL: "postgres://postgres:postgres@localhost:5432/pb_names"
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
       - name: Install Java
         uses: actions/setup-java@v4.3.0
         with:
@@ -36,6 +38,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
       - name: Install Java
         uses: actions/setup-java@v4.3.0
         with:
