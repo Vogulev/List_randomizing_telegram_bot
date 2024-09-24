@@ -22,5 +22,5 @@ holidays:
   url: https://isdayoff.ru/
 
 scheduledShuffles:
-  weekend: '0 45 9 * * 1,2,4,5'
+  weekend: '0 45 10 * * 1,2,4,5'
   wednesday: '0 45 10 * * 3'
