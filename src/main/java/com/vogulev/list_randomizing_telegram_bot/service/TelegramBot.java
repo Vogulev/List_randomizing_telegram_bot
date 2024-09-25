@@ -5,6 +5,8 @@ import com.vogulev.list_randomizing_telegram_bot.repository.NamesRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.annotation.Schedules;
 import org.springframework.stereotype.Component;
@@ -13,7 +15,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -56,7 +61,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 case "/delete", "Удалить коллегу ❌" -> commandService.delCmdReceived(update);
                 case "/shuffle", "Перемешать \uD83D\uDD00" -> commandService.shuffleCmdReceived();
                 case "/list", "Список \uD83D\uDCDC" -> commandService.listCmdReceived();
-                case "/holidays", "Праздники \uD83C\uDF89" -> "t.me/p_r_a_z_d_n_i_k";
+                case "/holidays", "Праздники \uD83C\uDF89" -> getHolidays();
                 case "/birthdays", "ДР \uD83C\uDF81" -> "Раздел \"Дни рождения\"" +
                         " находится в процессе разработки: дайте разработчику немного больше времени :-)";
                 default -> commandService.unknownCmdReceived(update, messageText);
@@ -76,6 +81,36 @@ public class TelegramBot extends TelegramLongPollingBot {
             var activePbClients = clientService.getAllActive();
             activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr, false));
         }
+    }
+
+    private String getHolidays() {
+        var list = new ArrayList<>();
+        try {
+            var doc = Jsoup.connect("https://xn--80aaiebcrjcibi8adgdtsm9z.xn--p1ai/").get();
+            var body = doc.body();
+            var mainEntity = body.getElementsByAttributeValue("itemprop", "mainEntity").getFirst();
+            var listing = mainEntity.getElementsByAttributeValue("class", "listing").getFirst();
+            var listingWr = listing.getElementsByAttributeValue("class", "listing_wr").getFirst();
+
+            getHolidayTitle(listingWr.getElementsByAttributeValue("itemprop", "acceptedAnswer").getFirst());
+
+            listingWr.getElementsByAttributeValue("itemprop", "suggestedAnswer").forEach(element -> {
+                var holidayTitle = getHolidayTitle(element);
+                list.add(holidayTitle);
+            });
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+        return list.stream()
+                .map(Object::toString)
+                .collect(Collectors.joining("\n"));
+    }
+
+    private String getHolidayTitle(Element element) {
+        var suggestedAnswerMain = element.getElementsByAttributeValue("class", "main").getFirst();
+        var suggestedfirst = suggestedAnswerMain.getElementsByAttributeValue("class", "main").getFirst();
+        var suggestedSecond = suggestedfirst.getElementsByAttributeValue("itemprop", "text").getFirst();
+        return suggestedSecond.childNode(0).toString();
     }
 
     private void sendMessage(Long chatId, String text, boolean withReplyMarkup) {
