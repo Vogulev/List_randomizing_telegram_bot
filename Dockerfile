@@ -1,7 +1,7 @@
 FROM gradle:8.6.0-jdk21-alpine as build
 ADD --chown=gradle:gradle . /application/
 WORKDIR /application
-RUN gradle clean build --stacktrace --no-daemon
+RUN gradle clean build --no-daemon --stacktrace
 
 FROM bellsoft/liberica-openjdk-debian:21.0.1-12 as prod
 WORKDIR /application
