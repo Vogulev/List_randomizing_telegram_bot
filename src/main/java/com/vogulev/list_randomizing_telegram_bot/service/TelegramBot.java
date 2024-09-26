@@ -24,6 +24,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final WorkingDaysInfoService workingDaysInfoService;
     private final ClientService clientService;
     private final ShuffleService shuffleService;
+    private final HolidaysService holidaysService;
     private final NamesRepository namesRepository;
     private final BotConfig botConfig;
 
@@ -56,7 +57,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 case "/delete", "Удалить коллегу ❌" -> commandService.delCmdReceived(update);
                 case "/shuffle", "Перемешать \uD83D\uDD00" -> commandService.shuffleCmdReceived();
                 case "/list", "Список \uD83D\uDCDC" -> commandService.listCmdReceived();
-                case "/holidays", "Праздники \uD83C\uDF89" -> "t.me/p_r_a_z_d_n_i_k";
+                case "/holidays", "Праздники \uD83C\uDF89" -> holidaysService.getHolidays();
                 case "/birthdays", "ДР \uD83C\uDF81" -> "Раздел \"Дни рождения\"" +
                         " находится в процессе разработки: дайте разработчику немного больше времени :-)";
                 default -> commandService.unknownCmdReceived(update, messageText);
@@ -77,7 +78,6 @@ public class TelegramBot extends TelegramLongPollingBot {
             activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr, false));
         }
     }
-
     private void sendMessage(Long chatId, String text, boolean withReplyMarkup) {
         var sendMessage = new SendMessage();
         sendMessage.setChatId(String.valueOf(chatId));
