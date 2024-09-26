@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Stopping gradle daemons
+gradle --stop
+
 # Cancel all local changes on the server
 git reset --hard
 
