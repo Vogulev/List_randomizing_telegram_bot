@@ -27,7 +27,9 @@ public class HolidaysService {
         var list = new ArrayList<String>();
         try {
             var doc = Jsoup.connect(URL)
-                    .userAgent("Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; fr) Presto/2.9.168 Version/11.52").get();
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
+                    .timeout(30000)
+                    .get();
             var body = doc.body();
             var mainEntity = body.getElementsByAttributeValue(ITEMPROP_ATTR_KEY, "mainEntity").getFirst();
             var listing = mainEntity.getElementsByAttributeValue(CLASS_ATTR_KEY, "listing").getFirst();
