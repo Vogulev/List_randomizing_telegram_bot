@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class HolidaysService {
-    public static final String URL = "https://xn--80aaiebcrjcibi8adgdtsm9z.xn--p1ai/";
+    public static final String URL = "https://какойсегодняпраздник.рф";
     public static final String CLASS_ATTR_KEY = "class";
     public static final String MAIN_ATTR_VALUE = "main";
     public static final String ITEMPROP_ATTR_KEY = "itemprop";
