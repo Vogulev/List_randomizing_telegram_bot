@@ -28,6 +28,15 @@ public class HolidaysService {
         try {
             var doc = Jsoup.connect(URL)
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+                    .header("accept-encoding", "gzip, deflate, br, zstd")
+                    .header("accept-language", "en-RU,en;q=0.9,ru-RU;q=0.8,ru;q=0.7,en-US;q=0.6")
+                    .header("cache-control", "max-age=0")
+                    .header("sec-ch-ua", "\"Google Chrome\";v=\"129\", \"Not=A?Brand\";v=\"8\", \"Chromium\";v=\"129\"")
+                    .header("sec-ch-ua-platform", "\"Windows\"")
+                    .header("sec-fetch-user", "?1")
+                    .header("upgrade-insecure-requests", "1")
+                    .header("priority", "u=0, i")
                     .timeout(30000)
                     .get();
             var body = doc.body();
