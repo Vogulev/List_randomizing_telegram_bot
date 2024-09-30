@@ -37,7 +37,7 @@ public class HolidaysService {
                     .build();
             return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);git
+            throw new RuntimeException(e);
         }
     }
 
