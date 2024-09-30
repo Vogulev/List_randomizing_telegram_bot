@@ -31,14 +31,26 @@ public class HolidaysService {
 
     public String body() {
         try (HttpClient client = newHttpClient()) {
-            HttpRequest request = HttpRequest.newBuilder()
+            var request = HttpRequest.newBuilder()
                     .uri(URI.create(URL))
                     .setHeader("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
                     .build();
-            return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+            var body = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+            System.out.println(body.substring(0, 500));
+
+            var doc = Jsoup.parse(body);
+            System.out.println(doc);
+
+            Element body1 = doc.body();
+            var mainEntity = body1.getElementsByAttributeValue(ITEMPROP_ATTR_KEY, "mainEntity").getFirst();
+            var listing = mainEntity.getElementsByAttributeValue(CLASS_ATTR_KEY, "listing").getFirst();
+            var listingWr = listing.getElementsByAttributeValue(CLASS_ATTR_KEY, "listing_wr").getFirst();
+            System.out.println(listingWr);
+
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+        return "";
     }
 
     private ArrayList<String> getHolidaysList() {
