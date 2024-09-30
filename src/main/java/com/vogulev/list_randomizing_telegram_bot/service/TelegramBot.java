@@ -57,7 +57,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 case "/delete", "Удалить коллегу ❌" -> commandService.delCmdReceived(update);
                 case "/shuffle", "Перемешать \uD83D\uDD00" -> commandService.shuffleCmdReceived();
                 case "/list", "Список \uD83D\uDCDC" -> commandService.listCmdReceived();
-                case "/holidays", "Праздники \uD83C\uDF89" -> holidaysService.getHolidays();
+                case "/holidays", "Праздники \uD83C\uDF89" -> holidaysService.getHolidays() + "\n\n" + holidaysService.body();
                 case "/birthdays", "ДР \uD83C\uDF81" -> "Раздел \"Дни рождения\"" +
                         " находится в процессе разработки: дайте разработчику немного больше времени :-)";
                 default -> commandService.unknownCmdReceived(update, messageText);

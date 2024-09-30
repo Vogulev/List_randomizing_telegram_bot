@@ -6,8 +6,14 @@ import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+
+import static java.net.http.HttpClient.newHttpClient;
 
 @Slf4j
 @Service
@@ -23,13 +29,27 @@ public class HolidaysService {
                 .collect(Collectors.joining("\n- "));
     }
 
+    public String body() {
+        try (HttpClient client = newHttpClient()) {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(URL))
+                    .setHeader("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
+                    .build();
+            return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);git
+        }
+    }
+
     private ArrayList<String> getHolidaysList() {
         var list = new ArrayList<String>();
         try {
             var doc = Jsoup.connect(URL)
+                    .newRequest()
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
                     .timeout(30000)
                     .get();
+
             var body = doc.body();
             var mainEntity = body.getElementsByAttributeValue(ITEMPROP_ATTR_KEY, "mainEntity").getFirst();
             var listing = mainEntity.getElementsByAttributeValue(CLASS_ATTR_KEY, "listing").getFirst();
