@@ -67,7 +67,6 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     @Schedules({
-            @Scheduled(cron = "${scheduledShuffles.wednesday}", zone = "Europe/Moscow"),
             @Scheduled(cron = "${scheduledShuffles.weekend}", zone = "Europe/Moscow")
     })
     protected void scheduledShuffle() {
@@ -77,6 +76,20 @@ public class TelegramBot extends TelegramLongPollingBot {
             var activePbClients = clientService.getAllActive();
             activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr, false));
         }
+    }
+
+    @Scheduled(cron = "${scheduledHolidays.weekend}", zone = "Europe/Moscow")
+    protected void scheduledHolidays() {
+        String holidays = holidaysService.getHolidays();
+        var activePbClients = clientService.getAllActive();
+        activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), holidays, false));
+    }
+
+    @Scheduled(cron = "${scheduledGoodMorning.weekend}", zone = "Europe/Moscow")
+    protected void scheduledGoodMorning() {
+        var activePbClients = clientService.getAllActive();
+        activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(),
+                "@gigachat_bot пожелай моим любимым и дорогим коллегам доброго утра!", false));
     }
 
     private void sendMessage(Long chatId, String text, boolean withReplyMarkup) {
