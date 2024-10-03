@@ -19,7 +19,7 @@ public class BotConfig {
     private final List<String> admins;
 
     public BotConfig() {
-        Dotenv dotenv = Dotenv.load();
+        Dotenv dotenv = Dotenv.configure().directory("./").load();
         this.botUserName = dotenv.get("BOT_USERNAME");
         this.botToken = dotenv.get("BOT_TOKEN");
         this.admins = Arrays.stream(dotenv.get("ADMINS").split(",")).toList();
