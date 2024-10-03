@@ -1,14 +1,13 @@
 package com.vogulev.list_randomizing_telegram_bot.config;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.yaml.snakeyaml.Yaml;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Getter
@@ -20,9 +19,9 @@ public class BotConfig {
     private final List<String> admins;
 
     public BotConfig() {
-        Map<String, String> config = new Yaml().load(getClass().getClassLoader().getResourceAsStream("botConfig.yaml"));
-        this.botUserName = config.get("botUserName");
-        this.botToken = config.get("botToken");
-        this.admins = Arrays.stream(config.get("admins").split(",")).toList();
+        Dotenv dotenv = Dotenv.load();
+        this.botUserName = dotenv.get("BOT_USERNAME");
+        this.botToken = dotenv.get("BOT_TOKEN");
+        this.admins = Arrays.stream(dotenv.get("ADMINS").split(",")).toList();
     }
 }
