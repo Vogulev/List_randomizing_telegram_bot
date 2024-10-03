@@ -33,3 +33,5 @@ services:
     restart: unless-stopped
     volumes:
       - ./.pb-bot-db:/var/lib/postgresql/data
+    env_file:
+      - ./.env
