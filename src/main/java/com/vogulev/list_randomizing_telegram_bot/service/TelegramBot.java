@@ -85,13 +85,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), holidays, false));
     }
 
-    @Scheduled(cron = "${scheduledGoodMorning.weekend}", zone = "Europe/Moscow")
-    protected void scheduledGoodMorning() {
-        var activePbClients = clientService.getAllActive();
-        activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(),
-                "@gigachat_bot пожелай моим любимым и дорогим коллегам доброго утра!", false));
-    }
-
     private void sendMessage(Long chatId, String text, boolean withReplyMarkup) {
         var sendMessage = new SendMessage();
         sendMessage.setChatId(String.valueOf(chatId));
