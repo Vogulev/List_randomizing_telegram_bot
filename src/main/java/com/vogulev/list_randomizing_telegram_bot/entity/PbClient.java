@@ -17,4 +17,10 @@ public class PbClient {
     private Long chatId;
 
     private Boolean active;
+
+    @Column(name = "is_admin")
+    private Boolean isAdmin;
+
+    @Column(name = "is_superuser")
+    private Boolean isSuperuser;
 }

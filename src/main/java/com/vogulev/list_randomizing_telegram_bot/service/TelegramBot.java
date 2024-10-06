@@ -26,6 +26,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final ShuffleService shuffleService;
     private final HolidaysService holidaysService;
     private final NamesRepository namesRepository;
+    private final AdminService adminService;
     private final BotConfig botConfig;
 
     @Override
@@ -60,6 +61,8 @@ public class TelegramBot extends TelegramLongPollingBot {
                 case "/holidays", "Праздники \uD83C\uDF89" -> holidaysService.getHolidays();
                 case "/birthdays", "ДР \uD83C\uDF81" -> "Раздел \"Дни рождения\"" +
                         " находится в процессе разработки: дайте разработчику немного больше времени :-)";
+                case "/admin", "Назначить администратора \uD83D\uDC68\uD83C\uDFFB\u200D\uD83D\uDCBB" ->
+                        adminService.markAsAdmin();
                 default -> commandService.unknownCmdReceived(update, messageText);
             };
             sendMessage(chatId, answer, true);
