@@ -31,7 +31,7 @@ public class HolidaysService {
                 .select(":is(a, span)").stream()
                 .map(Element::text)
                 .filter(element -> isNotBlank(element) && !isCreatable(element))
-                .map(element -> "-  " + element + " -")
+                .map(element -> "-  " + element)
                 .collect(Collectors.joining("\n"));
     }
 }
