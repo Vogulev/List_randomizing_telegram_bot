@@ -5,22 +5,27 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "pb_client")
-public class PbClient {
+@Table(name = "telegram_user")
+public class TelegramUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
 
+    private String surname;
+
     @Column(name = "chat_id")
     private Long chatId;
 
-    private Boolean active;
+    @Column(name = "telegram_id")
+    private Long telegramId;
+
+    private boolean active;
 
     @Column(name = "is_admin")
-    private Boolean isAdmin;
+    private boolean admin;
 
     @Column(name = "is_superuser")
-    private Boolean isSuperuser;
+    private boolean superuser;
 }
