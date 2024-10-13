@@ -6,8 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.yaml.snakeyaml.Yaml;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -17,12 +15,10 @@ import java.util.Map;
 public class BotConfig {
     private final String botUserName;
     private final String botToken;
-    private final List<String> admins;
 
     public BotConfig() {
         Map<String, String> config = new Yaml().load(getClass().getClassLoader().getResourceAsStream("botConfig.yaml"));
         this.botUserName = config.get("botUserName");
         this.botToken = config.get("botToken");
-        this.admins = Arrays.stream(config.get("admins").split(",")).toList();
     }
 }

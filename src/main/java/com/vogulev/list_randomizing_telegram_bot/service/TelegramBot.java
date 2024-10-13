@@ -22,7 +22,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final CommandService commandService;
     private final KeyboardService keyboardService;
     private final WorkingDaysInfoService workingDaysInfoService;
-    private final ClientService clientService;
+    private final TelegramUserService telegramUserService;
     private final ShuffleService shuffleService;
     private final HolidaysService holidaysService;
     private final NamesRepository namesRepository;
@@ -44,25 +44,30 @@ public class TelegramBot extends TelegramLongPollingBot {
         if (update.hasMessage() && update.getMessage().hasText() &&
                 update.getMessage().getChat().getType().equals("private")) {
             var message = update.getMessage();
+            var user = message.getFrom();
             var messageText = formatMessage(message.getText());
             long chatId = message.getChatId();
-            var firstName = message.getChat().getFirstName();
+            var telegramUserId = user.getId();
 
             String answer = switch (messageText) {
                 case "/start", "Старт/подписаться на ЛС \uD83D\uDE80" ->
-                        commandService.startCmdReceived(chatId, firstName);
+                        commandService.startCmdReceived(user, chatId);
                 case "/unsubscribe", "Отписаться от ЛС \uD83D\uDD15" ->
-                        commandService.unsubscribeCmdReceived(chatId, firstName);
-                case "/add", "Добавить коллегу ✅" -> commandService.addCmdReceived(update);
-                case "/delete", "Удалить коллегу ❌" -> commandService.delCmdReceived(update);
+                        commandService.unsubscribeCmdReceived(telegramUserId);
+                case "/add", "Добавить коллегу ✅" -> commandService.addCmdReceived(user);
+                case "/delete", "Удалить коллегу ❌" -> commandService.delCmdReceived(user);
                 case "/shuffle", "Перемешать \uD83D\uDD00" -> commandService.shuffleCmdReceived();
                 case "/list", "Список \uD83D\uDCDC" -> commandService.listCmdReceived();
                 case "/holidays", "Праздники \uD83C\uDF89" -> holidaysService.getHolidays();
                 case "/birthdays", "ДР \uD83C\uDF81" -> "Раздел \"Дни рождения\"" +
                         " находится в процессе разработки: дайте разработчику немного больше времени :-)";
+                case "/admin", "Назначить админа \uD83D\uDC68\uD83C\uDFFB\u200D\uD83D\uDCBB" ->
+                        commandService.adminCmdReceived(user, true);
+                case "/delete_admin", "Удалить админа \uD83E\uDDD1\uD83C\uDFFB\u200D\uD83D\uDD27" ->
+                        commandService.adminCmdReceived(user, false);
                 default -> commandService.unknownCmdReceived(update, messageText);
             };
-            sendMessage(chatId, answer, true);
+            sendMessage(chatId, telegramUserId, answer, true);
         }
     }
 
@@ -73,24 +78,35 @@ public class TelegramBot extends TelegramLongPollingBot {
         if (workingDaysInfoService.isWorkingDate(LocalDate.now())) {
             var users = namesRepository.findAll();
             var namesStr = shuffleService.shuffle(users);
-            var activePbClients = clientService.getAllActive();
-            activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr, false));
+            var activePbClients = telegramUserService.getAllActive();
+            activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr));
         }
     }
 
     @Scheduled(cron = "${scheduledHolidays.weekend}", zone = "Europe/Moscow")
     protected void scheduledHolidays() {
         String holidays = holidaysService.getHolidays();
-        var activePbClients = clientService.getAllActive();
-        activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), holidays, false));
+        var activePbClients = telegramUserService.getAllActive();
+        activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), holidays));
     }
 
-    private void sendMessage(Long chatId, String text, boolean withReplyMarkup) {
+    public void sendMessage(Long chatId, String text) {
+        var sendMessage = new SendMessage();
+        sendMessage.setChatId(String.valueOf(chatId));
+        sendMessage.setText(text);
+        try {
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    public void sendMessage(Long chatId, Long telegramUserId, String text, boolean withReplyMarkup) {
         var sendMessage = new SendMessage();
         sendMessage.setChatId(String.valueOf(chatId));
         sendMessage.setText(text);
         if (withReplyMarkup) {
-            sendMessage.setReplyMarkup(keyboardService.getKeyboard());
+            sendMessage.setReplyMarkup(keyboardService.getKeyboard(telegramUserId));
         }
         try {
             execute(sendMessage);
