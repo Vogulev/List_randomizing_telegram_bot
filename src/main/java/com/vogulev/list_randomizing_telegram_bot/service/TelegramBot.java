@@ -47,12 +47,13 @@ public class TelegramBot extends TelegramLongPollingBot {
             var user = message.getFrom();
             var messageText = formatMessage(message.getText());
             long chatId = message.getChatId();
+            var telegramUserId = user.getId();
 
             String answer = switch (messageText) {
                 case "/start", "Старт/подписаться на ЛС \uD83D\uDE80" ->
                         commandService.startCmdReceived(user, chatId);
                 case "/unsubscribe", "Отписаться от ЛС \uD83D\uDD15" ->
-                        commandService.unsubscribeCmdReceived(user.getId());
+                        commandService.unsubscribeCmdReceived(telegramUserId);
                 case "/add", "Добавить коллегу ✅" -> commandService.addCmdReceived(user);
                 case "/delete", "Удалить коллегу ❌" -> commandService.delCmdReceived(user);
                 case "/shuffle", "Перемешать \uD83D\uDD00" -> commandService.shuffleCmdReceived();
@@ -60,13 +61,13 @@ public class TelegramBot extends TelegramLongPollingBot {
                 case "/holidays", "Праздники \uD83C\uDF89" -> holidaysService.getHolidays();
                 case "/birthdays", "ДР \uD83C\uDF81" -> "Раздел \"Дни рождения\"" +
                         " находится в процессе разработки: дайте разработчику немного больше времени :-)";
-                case "/admin", "Назначить администратора \uD83D\uDC68\uD83C\uDFFB\u200D\uD83D\uDCBB" ->
+                case "/admin", "Назначить админа \uD83D\uDC68\uD83C\uDFFB\u200D\uD83D\uDCBB" ->
                         commandService.adminCmdReceived(user, true);
-                case "/delete_admin", "Убрать права администратора \uD83D\uDC68\uD83C\uDFFB\u200D\uD83D\uDCBB" ->
+                case "/delete_admin", "Удалить админа \uD83E\uDDD1\uD83C\uDFFB\u200D\uD83D\uDD27" ->
                         commandService.adminCmdReceived(user, false);
                 default -> commandService.unknownCmdReceived(update, messageText);
             };
-            sendMessage(chatId, answer, true);
+            sendMessage(chatId, telegramUserId, answer, true);
         }
     }
 
@@ -78,7 +79,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             var users = namesRepository.findAll();
             var namesStr = shuffleService.shuffle(users);
             var activePbClients = telegramUserService.getAllActive();
-            activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr, false));
+            activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), namesStr));
         }
     }
 
@@ -86,15 +87,26 @@ public class TelegramBot extends TelegramLongPollingBot {
     protected void scheduledHolidays() {
         String holidays = holidaysService.getHolidays();
         var activePbClients = telegramUserService.getAllActive();
-        activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), holidays, false));
+        activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), holidays));
     }
 
-    public void sendMessage(Long chatId, String text, boolean withReplyMarkup) {
+    public void sendMessage(Long chatId, String text) {
+        var sendMessage = new SendMessage();
+        sendMessage.setChatId(String.valueOf(chatId));
+        sendMessage.setText(text);
+        try {
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    public void sendMessage(Long chatId, Long telegramUserId, String text, boolean withReplyMarkup) {
         var sendMessage = new SendMessage();
         sendMessage.setChatId(String.valueOf(chatId));
         sendMessage.setText(text);
         if (withReplyMarkup) {
-            sendMessage.setReplyMarkup(keyboardService.getKeyboard());
+            sendMessage.setReplyMarkup(keyboardService.getKeyboard(telegramUserId));
         }
         try {
             execute(sendMessage);

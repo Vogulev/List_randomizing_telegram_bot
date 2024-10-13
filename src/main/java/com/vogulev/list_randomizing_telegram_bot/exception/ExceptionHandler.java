@@ -20,10 +20,10 @@ public class ExceptionHandler {
             pointcut = "execution(* com.vogulev.list_randomizing_telegram_bot.service.CommandService.unknownCmdReceived(..)))",
             throwing = "ex"
     )
-    protected void handleFirstException(JoinPoint joinPoint, NoUserFoundException ex) {
+    protected void handleNoUserFoundException(JoinPoint joinPoint, NoUserFoundException ex) {
         log.warn(ex.getMessage());
         Object[] signatureArgs = joinPoint.getArgs();
         Update update = (Update) signatureArgs[0];
-        telegramBot.sendMessage(update.getMessage().getChatId(), ex.getMessage(), false);
+        telegramBot.sendMessage(update.getMessage().getChatId(), ex.getMessage());
     }
 }

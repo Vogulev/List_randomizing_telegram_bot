@@ -67,7 +67,7 @@ public class CommandService {
         var user = telegramUserService.getByTelegramId(telegramUser.getId());
         if (user.isPresent() && isAdmin(user.get())) {
             isDeleteCmd = true;
-            return "Введите имя сотрудника для удаления его из списка";
+            return "Введите имя сотрудника для удаления его из списка дейли";
         }
         return "Вы не являетесь администратором бота";
     }
@@ -76,7 +76,7 @@ public class CommandService {
         var user = telegramUserService.getByTelegramId(telegramUser.getId());
         if (user.isPresent() && isAdmin(user.get())) {
             isSaveUserCmd = true;
-            return "Введите имя сотрудника для добавления его в список";
+            return "Введите имя сотрудника для добавления его в список дейли";
         }
         return "Вы не являетесь администратором бота";
     }
@@ -130,24 +130,25 @@ public class CommandService {
                 isSaveUserCmd = false;
             }
         } else if (isExpectedCommand(update, isDeleteCmd)) {
+            isDeleteCmd = false;
             var isDeleted = namesRepository.deletePbUserByName(messageText);
             if (isDeleted == 1) {
-                answer = "Вы успешно удалили сотрудника " + messageText;
+                answer = "Вы успешно удалили сотрудника " + messageText + " из дейли списка";
             } else {
                 answer = "Сотрудник с именем " + messageText + " не найден!";
             }
-            isDeleteCmd = false;
         } else if (isExpectedCommand(update, isAddAdminCmd)) {
+            isAddAdminCmd = false;
             TelegramUser user = telegramUserService.getByName(messageText)
                     .orElseThrow(() -> new NoUserFoundException("Пользователь " + messageText + " не найден!"));
             telegramUserService.markAdmin(user);
-            isAddAdminCmd = false;
             answer = "Вы успешно возвысили сотрудника " + messageText + " до администратора бота";
         } else if (isExpectedCommand(update, isDeleteAdminCmd)) {
+            isDeleteAdminCmd = false;
             TelegramUser user = telegramUserService.getByName(messageText)
-                    .orElseThrow(() -> new NoUserFoundException("Пользователь " + messageText + " не найден!"));
+                    .orElseThrow(() -> new NoUserFoundException("Пользователь " + messageText + " не найден! " +
+                            "Возможно он еще не познакомился с ботом? Попросите его нажать кнопку \"старт\" в ЛС бота"));
             telegramUserService.unmarkAdmin(user);
-            isAddAdminCmd = false;
             answer = "Вы успешно унизили администратора " + messageText + " до обычного смертного";
         } else {
             answer = "Не знаю такой команды, попробуйте выбрать нужное действие";
