@@ -1,6 +1,8 @@
 package com.vogulev.list_randomizing_telegram_bot.service;
 
 import com.vogulev.list_randomizing_telegram_bot.config.BotConfig;
+import com.vogulev.list_randomizing_telegram_bot.integration.IsDayOffClient;
+import com.vogulev.list_randomizing_telegram_bot.integration.MyCalendClient;
 import com.vogulev.list_randomizing_telegram_bot.repository.NamesRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,10 +23,10 @@ import java.time.LocalDate;
 public class TelegramBot extends TelegramLongPollingBot {
     private final CommandService commandService;
     private final KeyboardService keyboardService;
-    private final WorkingDaysInfoService workingDaysInfoService;
+    private final IsDayOffClient isDayOffClient;
     private final TelegramUserService telegramUserService;
     private final ShuffleService shuffleService;
-    private final HolidaysService holidaysService;
+    private final MyCalendClient myCalendClient;
     private final NamesRepository namesRepository;
     private final BotConfig botConfig;
 
@@ -58,7 +60,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 case "/delete", "Удалить коллегу ❌" -> commandService.delCmdReceived(user);
                 case "/shuffle", "Перемешать \uD83D\uDD00" -> commandService.shuffleCmdReceived();
                 case "/list", "Список \uD83D\uDCDC" -> commandService.listCmdReceived();
-                case "/holidays", "Праздники \uD83C\uDF89" -> holidaysService.getHolidays();
+                case "/holidays", "Праздники \uD83C\uDF89" -> myCalendClient.getHolidays();
                 case "/birthdays", "ДР \uD83C\uDF81" -> "Раздел \"Дни рождения\"" +
                         " находится в процессе разработки: дайте разработчику немного больше времени :-)";
                 case "/admin", "Назначить админа \uD83D\uDC68\uD83C\uDFFB\u200D\uD83D\uDCBB" ->
@@ -75,7 +77,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             @Scheduled(cron = "${scheduledShuffles.weekend}", zone = "Europe/Moscow")
     })
     protected void scheduledShuffle() {
-        if (workingDaysInfoService.isWorkingDate(LocalDate.now())) {
+        if (isDayOffClient.isWorkingDate(LocalDate.now())) {
             var users = namesRepository.findAll();
             var namesStr = shuffleService.shuffle(users);
             var activePbClients = telegramUserService.getAllActive();
@@ -85,7 +87,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Scheduled(cron = "${scheduledHolidays.weekend}", zone = "Europe/Moscow")
     protected void scheduledHolidays() {
-        String holidays = holidaysService.getHolidays();
+        String holidays = myCalendClient.getHolidays();
         var activePbClients = telegramUserService.getAllActive();
         activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), holidays));
     }

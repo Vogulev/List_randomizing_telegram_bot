@@ -1,4 +1,4 @@
-package com.vogulev.list_randomizing_telegram_bot.service;
+package com.vogulev.list_randomizing_telegram_bot.integration;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,7 @@ import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 
 @Slf4j
 @Service
-public class HolidaysService {
+public class MyCalendClient {
     public static final String URL = "https://my-calend.ru/holidays";
     public static final String USER_AGENT = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
     public static final String CLASS_ATTR_KEY = "class";
