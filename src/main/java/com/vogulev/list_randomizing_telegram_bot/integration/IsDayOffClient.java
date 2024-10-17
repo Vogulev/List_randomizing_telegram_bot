@@ -23,9 +23,9 @@ public class IsDayOffClient {
         var dateIso = date.format(DateTimeFormatter.BASIC_ISO_DATE);
         var response = restClient
                 .get()
-                .uri(targetUrl, dateIso)
+                .uri(targetUrl + dateIso)
                 .exchange((rq, rs) -> {
-                    if (rs.getStatusCode().isError()) {
+                    if (rs.getStatusCode().isError() || rs.getStatusCode().is3xxRedirection()) {
                         return WORKING_DAY;
                     } else {
                         return requireNonNull(rs.bodyTo(String.class));
