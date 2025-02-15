@@ -15,10 +15,12 @@ import java.util.Map;
 public class BotConfig {
     private final String botUserName;
     private final String botToken;
+    private final String weatherApiToken;
 
     public BotConfig() {
         Map<String, String> config = new Yaml().load(getClass().getClassLoader().getResourceAsStream("botConfig.yaml"));
         this.botUserName = config.get("botUserName");
         this.botToken = config.get("botToken");
+        this.weatherApiToken = config.get("weatherApiToken");
     }
 }

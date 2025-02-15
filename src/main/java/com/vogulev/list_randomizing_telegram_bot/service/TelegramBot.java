@@ -3,6 +3,7 @@ package com.vogulev.list_randomizing_telegram_bot.service;
 import com.vogulev.list_randomizing_telegram_bot.config.BotConfig;
 import com.vogulev.list_randomizing_telegram_bot.integration.IsDayOffClient;
 import com.vogulev.list_randomizing_telegram_bot.integration.MyCalendClient;
+import com.vogulev.list_randomizing_telegram_bot.integration.WeatherApiClient;
 import com.vogulev.list_randomizing_telegram_bot.repository.NamesRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.IOException;
 import java.time.LocalDate;
 
 @Slf4j
@@ -24,6 +26,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final CommandService commandService;
     private final KeyboardService keyboardService;
     private final IsDayOffClient isDayOffClient;
+    private final WeatherApiClient weatherApiClient;
     private final TelegramUserService telegramUserService;
     private final ShuffleService shuffleService;
     private final MyCalendClient myCalendClient;
@@ -90,6 +93,13 @@ public class TelegramBot extends TelegramLongPollingBot {
         String holidays = myCalendClient.getHolidays();
         var activePbClients = telegramUserService.getAllActive();
         activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), holidays));
+    }
+
+    @Scheduled(cron = "${scheduledHolidays.weekend}", zone = "Europe/Moscow")
+    protected void scheduledWeather() throws IOException {
+        var weather = weatherApiClient.getCurrentWeather("Samara");
+        var activePbClients = telegramUserService.getAllActive();
+        activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), weather.toString()));
     }
 
     public void sendMessage(Long chatId, String text) {
