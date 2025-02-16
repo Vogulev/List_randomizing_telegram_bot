@@ -3,8 +3,6 @@ package com.vogulev.list_randomizing_telegram_bot.service;
 import com.vogulev.list_randomizing_telegram_bot.config.BotConfig;
 import com.vogulev.list_randomizing_telegram_bot.integration.IsDayOffClient;
 import com.vogulev.list_randomizing_telegram_bot.integration.MyCalendClient;
-import com.vogulev.list_randomizing_telegram_bot.integration.WeatherApiClient;
-import com.vogulev.list_randomizing_telegram_bot.repository.CitiesRepository;
 import com.vogulev.list_randomizing_telegram_bot.repository.NamesRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +15,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.io.IOException;
 import java.time.LocalDate;
 
 @Slf4j
@@ -27,12 +24,11 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final CommandService commandService;
     private final KeyboardService keyboardService;
     private final IsDayOffClient isDayOffClient;
-    private final WeatherApiClient weatherApiClient;
     private final TelegramUserService telegramUserService;
+    private final WeatherService weatherService;
     private final ShuffleService shuffleService;
     private final MyCalendClient myCalendClient;
     private final NamesRepository namesRepository;
-    private final CitiesRepository citiesRepository;
     private final BotConfig botConfig;
 
     @Override
@@ -65,7 +61,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 case "/shuffle", "Перемешать \uD83D\uDD00" -> commandService.shuffleCmdReceived();
                 case "/list", "Список \uD83D\uDCDC" -> commandService.listCmdReceived();
                 case "/holidays", "Праздники \uD83C\uDF89" -> myCalendClient.getHolidays();
-                case "/weather", "Погода \uD83C\uDF27" -> getWeather();
+                case "/weather", "Погода \uD83C\uDF27" -> weatherService.getWeather();
                 case "/birthdays", "ДР \uD83C\uDF81" -> "Раздел \"Дни рождения\"" +
                         " находится в процессе разработки: дайте разработчику немного больше времени :-)";
                 case "/admin", "Назначить админа \uD83D\uDC68\uD83C\uDFFB\u200D\uD83D\uDCBB" ->
@@ -99,23 +95,11 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Scheduled(cron = "${scheduledHolidays.weekend}", zone = "Europe/Moscow")
     protected void scheduledWeather() {
-        var result = getWeather();
+        var result = weatherService.getWeather();
         var activePbClients = telegramUserService.getAllActive();
         activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), result));
     }
 
-    private String getWeather() {
-        var result = new StringBuilder();
-        citiesRepository.findAll().forEach(city -> {
-            try {
-                var currentWeather = weatherApiClient.getCurrentWeather(city);
-                result.append(currentWeather);
-            } catch (IOException e) {
-                log.error(e.getMessage());
-            }
-        });
-        return result.toString().stripTrailing();
-    }
 
     public void sendMessage(Long chatId, String text) {
         var sendMessage = new SendMessage();
