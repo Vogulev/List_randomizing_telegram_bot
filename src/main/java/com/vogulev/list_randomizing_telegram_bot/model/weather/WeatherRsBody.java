@@ -6,5 +6,6 @@ import lombok.Data;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WeatherRsBody {
-    
+    private WeatherLocation location;
+    private WeatherCurrent current;
 }
