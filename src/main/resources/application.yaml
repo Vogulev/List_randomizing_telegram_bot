@@ -21,6 +21,9 @@ spring:
 holidays:
   url: https://isdayoff.ru/
 
+weather:
+  url: http://api.weatherapi.com/v1/
+
 scheduledShuffles:
   weekend: '0 45 10 * * 1,2,3,4,5'
 

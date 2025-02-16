@@ -25,6 +25,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final KeyboardService keyboardService;
     private final IsDayOffClient isDayOffClient;
     private final TelegramUserService telegramUserService;
+    private final WeatherService weatherService;
     private final ShuffleService shuffleService;
     private final MyCalendClient myCalendClient;
     private final NamesRepository namesRepository;
@@ -52,8 +53,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             var telegramUserId = user.getId();
 
             String answer = switch (messageText) {
-                case "/start", "Старт/подписаться на ЛС \uD83D\uDE80" ->
-                        commandService.startCmdReceived(user, chatId);
+                case "/start", "Старт/подписаться на ЛС \uD83D\uDE80" -> commandService.startCmdReceived(user, chatId);
                 case "/unsubscribe", "Отписаться от ЛС \uD83D\uDD15" ->
                         commandService.unsubscribeCmdReceived(telegramUserId);
                 case "/add", "Добавить коллегу ✅" -> commandService.addCmdReceived(user);
@@ -61,6 +61,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 case "/shuffle", "Перемешать \uD83D\uDD00" -> commandService.shuffleCmdReceived();
                 case "/list", "Список \uD83D\uDCDC" -> commandService.listCmdReceived();
                 case "/holidays", "Праздники \uD83C\uDF89" -> myCalendClient.getHolidays();
+                case "/weather", "Погода \uD83C\uDF27" -> weatherService.getWeather();
                 case "/birthdays", "ДР \uD83C\uDF81" -> "Раздел \"Дни рождения\"" +
                         " находится в процессе разработки: дайте разработчику немного больше времени :-)";
                 case "/admin", "Назначить админа \uD83D\uDC68\uD83C\uDFFB\u200D\uD83D\uDCBB" ->
@@ -91,6 +92,14 @@ public class TelegramBot extends TelegramLongPollingBot {
         var activePbClients = telegramUserService.getAllActive();
         activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), holidays));
     }
+
+    @Scheduled(cron = "${scheduledHolidays.weekend}", zone = "Europe/Moscow")
+    protected void scheduledWeather() {
+        var result = weatherService.getWeather();
+        var activePbClients = telegramUserService.getAllActive();
+        activePbClients.forEach(pbClient -> sendMessage(pbClient.getChatId(), result));
+    }
+
 
     public void sendMessage(Long chatId, String text) {
         var sendMessage = new SendMessage();

@@ -73,6 +73,12 @@ public class KeyboardService {
             keyboardRows.add(row5);
         }
 
+        KeyboardRow row6 = new KeyboardRow();
+        KeyboardButton keyboardButton11 = new KeyboardButton();
+        keyboardButton11.setText("Погода \uD83C\uDF27");
+        row6.add(keyboardButton11);
+        keyboardRows.add(row6);
+
         replyKeyboardMarkup.setKeyboard(keyboardRows);
         return replyKeyboardMarkup;
     }
