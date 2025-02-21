@@ -28,7 +28,7 @@ scheduledShuffles:
   weekend: '0 45 10 * * 1,2,3,4,5'
 
 scheduledHolidays:
-  weekend: '0 55 10 * * 1,2,3,4,5'
+  weekend: '0 40 10 * * 1,2,3,4,5'
 
 scheduledGoodMorning:
   weekend: '0 30 09 * * 1,2,3,4,5'
